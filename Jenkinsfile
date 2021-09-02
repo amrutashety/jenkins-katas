@@ -1,7 +1,7 @@
 pipeline {
   agent any
   stages {
-    stage('Hello') {
+    stage('Parallel Execution') {
       parallel {
         stage('Parallel Execution') {
           steps {
@@ -17,7 +17,7 @@ pipeline {
 
           }
           steps {
-            sh 'sh "ci/build-app.sh"'
+            sh 'ci/build-app.sh'
             archiveArtifacts 'app/build/libs/'
           }
         }
