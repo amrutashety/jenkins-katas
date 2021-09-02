@@ -1,5 +1,8 @@
 pipeline {
   agent any
+  environment { 
+        docker_username = 'amrutashety'
+    }
   stages {
     stage('Clone Down'){
       agent {
@@ -24,12 +27,13 @@ pipeline {
             }
           }
           options {
-            skipDefaultCheckout(true)
+            skipDefaultCheckout true
           }
           steps {
             unstash 'code'
             sh 'ci/build-app.sh'
             archiveArtifacts 'app/build/libs/'
+            stash excludes: '.git', name: 'code'
           }
         }
 
@@ -40,7 +44,7 @@ pipeline {
             }
           }
           options {
-            skipDefaultCheckout(true)
+            skipDefaultCheckout true
           }
           steps {
             unstash 'code'
@@ -50,6 +54,20 @@ pipeline {
         }
 
       }
+    }
+    stage('Push Docker App'){
+      agent {
+            label 'swarm'
+          }
+      environment {
+        DOCKERCREDS = credentials('docker_login') //use the credentials just created in this stage
+      }
+      steps {
+        unstash 'code' //unstash the repository code
+        sh 'ci/build-docker.sh'
+        sh 'echo "$DOCKERCREDS_PSW" | docker login -u "$DOCKERCREDS_USR" --password-stdin' //login to docker hub with the credentials above
+        sh 'ci/push-docker.sh'
+}
     }
 
   }
