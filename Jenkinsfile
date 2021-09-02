@@ -55,6 +55,7 @@ pipeline {
 
       }
     }
+
     stage('Push Docker App'){
       agent {
             label 'swarm'
@@ -67,13 +68,12 @@ pipeline {
         sh 'ci/build-docker.sh'
         sh 'echo "$DOCKERCREDS_PSW" | docker login -u "$DOCKERCREDS_USR" --password-stdin' //login to docker hub with the credentials above
         sh 'ci/push-docker.sh'
-}
+      }
     }
-
   }
   post {
     cleanup {
         deleteDir() /* clean up our workspace */
     }
-}
+  }
 }
