@@ -29,11 +29,9 @@ pipeline {
             unstash 'code'
             sh 'ci/build-app.sh'
             archiveArtifacts 'app/build/libs/'
-            sh 'ls -lrt'
-            deleteDir()
-            sh 'ls -lrt'
           }
         }
+        
         stage('Test app') {
           agent {
             docker {
@@ -53,4 +51,9 @@ pipeline {
     }
 
   }
+  post {
+    cleanup {
+        deleteDir() /* clean up our workspace */
+    }
+}
 }
