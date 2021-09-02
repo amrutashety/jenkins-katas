@@ -1,6 +1,14 @@
 pipeline {
   agent any
   stages {
+    stage('Clone Down'){
+      agent {
+            label 'swarm'
+          }
+      steps{
+        stash excludes: '.git', name: 'code'
+      }
+    }
     stage('Parallel Execution') {
       parallel {
         stage('Hello') {
@@ -17,11 +25,27 @@ pipeline {
 
           }
           steps {
+            skipDefaultCheckout(true)
+            unstash 'code'
             sh 'ci/build-app.sh'
             archiveArtifacts 'app/build/libs/'
             sh 'ls -lrt'
             deleteDir()
             sh 'ls -lrt'
+          }
+        }
+        stage('Test app') {
+          agent {
+            docker {
+              image 'gradle:6-jdk11'
+            }
+
+          }
+          steps {
+            skipDefaultCheckout(true)
+            unstash 'code'
+            sh 'ci/unit-test-app.sh'
+            junit 'app/build/test-results/test/TEST-*.xml'
           }
         }
 
